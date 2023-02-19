@@ -2,7 +2,7 @@ import List from "./List";
 import Search from "./Search";
 import { getStories } from "./services";
 import useSemiPersistentState from "./useSemiPersistentState";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Pagination from "./Pagination";
 
 function Home({ handleClick }) {
@@ -11,15 +11,26 @@ function Home({ handleClick }) {
   const [isLoading, setIsLoading] = useState(false);
   const [actualPage, setActualPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [version, setVersion] = useState(1);
+  const versionRef = useRef(0);
 
   useEffect(() => {
+    versionRef.current = versionRef.current + 1;
+
+    setVersion(v => {return v  +1})
+
     setIsLoading(true);
+
     getStories(searchTerm, actualPage).then((result) => {
+
+      if (version === versionRef.current)
+      {
       setStories(result.results);
 
       setTotalPages(result.totalPages);
 
       setIsLoading(false);
+    }
     });
   }, [searchTerm, actualPage]);
 
@@ -48,8 +59,14 @@ function Home({ handleClick }) {
       <hr />
       <br />
       <Search searchTerm={searchTerm} setSearchTerm={changeSearchTerm} />
+      { isLoading ?
+      <p>Loading...</p>
+      :
+      <>
       <List list={stories} />
       <Pagination totalPages={totalPages} actualPage={actualPage} setActualPage={setActualPage}/>
+      </>
+      }
     </>
   );
 }
